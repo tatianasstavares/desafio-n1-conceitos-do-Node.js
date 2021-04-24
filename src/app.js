@@ -9,15 +9,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const repositories = [
-  {
-    id: "10281b61-4ac6-4edb-a289-6efb42bc5412",
-    title: "Desafio Node.js",
-    url: "https: //github.com/tatianasstavares/goStack-backEnd",
-    techs: ["node.js", "typescript"],
-    likes: 0,
-  },
-];
+const repositories = [];
 
 app.get("/repositories", (request, response) => {
   return response.json(repositories);
@@ -43,20 +35,14 @@ app.put("/repositories/:id", (request, response) => {
   const { id } = request.params;
   const { title, url, techs } = request.body;
 
-  const repoIndex = repositories.findIndex(
-    (repository) => repository.id === id
-  );
+  let repository = repositories.find((repository) => repository.id === id);
+  if (!repository) {
+    return response.status(400).json({ error: "Repository not found." });
+  }
 
-  repoIndex >= 0 ? repoIndex : response.status(400);
+  repository = { ...repository, title, url, techs };
 
-  const newRepo = repositories[repoIndex];
-  newRepo.title = title ? title : newRepo.title;
-  newRepo.url = url ? url : newRepo.url;
-  newRepo.techs = techs ? techs : newRepo.techs;
-
-  repositories.splice(repoIndex, 1, newRepo);
-
-  return response.status(204);
+  return response.json(repository);
 });
 
 app.delete("/repositories/:id", (request, response) => {
@@ -66,11 +52,12 @@ app.delete("/repositories/:id", (request, response) => {
     (repository) => repository.id === id
   );
 
-  findRepositoryIndex > 0 ? findRepositoryIndex : response.status(400);
-
+  if (findRepositoryIndex < 0) {
+    return response.status(400).json({ Error: "Repository not found" });
+  }
   repositories.splice(findRepositoryIndex, 1);
 
-  return response.send("Item deletado");
+  return response.status(204).send();
 });
 
 app.post("/repositories/:id/like", (request, response) => {
